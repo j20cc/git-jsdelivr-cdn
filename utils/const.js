@@ -1,0 +1,1 @@
+export const top_path = "images"
