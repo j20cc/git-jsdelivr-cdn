@@ -1,8 +1,37 @@
 'use client'
 import Image from 'next/image'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Page() {
+  const [dragging, setDragging] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [url, setUrl] = useState('')
+  const [branches, setBranches] = useState(['master', 'main'])
+  const [owner, setOwner] = useState('')
+  const [repo, setRepo] = useState('')
+  const [token, setToken] = useState('')
+  const [branch, setBranch] = useState(branches[0])
+  const [sha, setSha] = useState('')
+
+  useEffect(() => {
+    const getSettings = async () => {
+      const settings = localStorage.getItem("settings")
+      console.log("settings", settings);
+      if (settings) {
+        const { owner, repo, token, branch, sha } = JSON.parse(settings)
+        setUrl(`${owner}/${repo}`)
+        setOwner(owner)
+        setRepo(repo)
+        setToken(token)
+        setBranch(branch)
+        setBranches([branch])
+        setSha(sha)
+      }
+    }
+
+    getSettings()
+  }, [])
+
   const handleFileChange = async (event) => {
     let f = event.target.files[0]
     const base64 = await toBase64(f);
@@ -37,9 +66,6 @@ export default function Page() {
     }
   }
 
-  const [dragging, setDragging] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-
   const handleDragEnter = (e) => {
     e.preventDefault();
     setDragging(true);
@@ -63,52 +89,80 @@ export default function Page() {
     setSelectedFile(file);
   };
 
-  const [url, setUrl] = useState('')
-  const [branches, setBranches] = useState(['master'])
-
   const handleParseGithub = () => {
-    const info = parseRepoUrl(url);
-    if (info) {
-      const owner_repo = `${info.owner}/${info.repo}`
-      setUrl(owner_repo)
-      fetch(`https://api.github.com/repos/${owner_repo}/branches`)
-        .then(response => response.json())
-        .then(json => {
-          // const list = json.map(item => item.name)
-          console.log(json);
-        })
-        .catch(err => console.log('Request Failed', err));
+    const url_split = url.split("/")
+    let info = parseRepoUrl(url)
+    if (url_split.length == 2) {
+      info = { owner: url_split[0], repo: url_split[1] }
     }
+    if (info) {
+      setOwner(info.owner)
+      setRepo(info.repo)
+      setUrl(`${info.owner}/${info.repo}`)
+    }
+  }
+
+  const handleGetBranches = async () => {
+    if (token && owner && repo) {
+      const URL = `https://api.github.com/repos/${owner}/${repo}/branches`;
+      const headers = {
+        Accept: 'application/vnd.github+json',
+        "Authorization": `Bearer ${token}`,
+      };
+      const response = await fetch(URL, { headers });
+      const data = await response.json();
+      const list = data.map(item => item.name);
+      if (list.length > 0) {
+        setBranches(list)
+        setBranch(list[0])
+      }
+    }
+  }
+
+  const handleSave = () => {
+    const setting_info = {
+      token,
+      owner,
+      repo,
+      branch,
+      sha
+    }
+    console.log("setting_info", setting_info);
+    localStorage.setItem("settings", JSON.stringify(setting_info));
+  }
+
+  const renderSetting = () => {
+    return (<div className="bg-white border shadow rounded px-3 py-2 flex items-center">
+      <div className="flex items-center">
+        <p className='text-gray-600 text-sm'>存储仓库:</p>
+        <input
+          value={url} onChange={e => setUrl(e.target.value)} onBlur={handleParseGithub}
+          type="text" className='border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
+      </div>
+
+      <div className="flex items-center ml-2">
+        <p className='text-gray-600 text-sm'>token:</p>
+        <input value={token} onChange={e => setToken(e.target.value)} onBlur={handleGetBranches} type="text" className='w-80  border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
+      </div>
+      <div className="flex items-center ml-2">
+        <p className='text-gray-600 text-sm'>分支:</p>
+        <select onChange={e => setBranch(e.target.value)} defaultValue={branch} className='border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none'>
+          {branches.map(item => <option value={item} key={item}>{item}</option>)}
+        </select>
+      </div>
+      <div className="flex items-baseline ml-auto">
+        <p className='text-gray-500 text-sm'>*数据只会存在本地，请放心使用</p>
+        <p className='text-gray-500 text-sm ml-2'>*帮助</p>
+        <button onClick={handleSave} className='bg-green-300 text-white text-sm border rounded px-3 py-1 ml-2'>保 存</button>
+      </div>
+    </div >)
   }
 
   // https://api.github.com/repos/tw93/Maple/branches
   return (
     <div className="container mx-auto py-10">
-      <div className="bg-white border shadow rounded px-3 py-2 flex items-center">
-        <div className="flex items-center">
-          <p className='text-gray-600 text-sm'>存储仓库:</p>
-          <input
-            value={url} onChange={e => setUrl(e.target.value)} onBlur={handleParseGithub}
-            type="text" className='border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
-        </div>
+      {renderSetting()}
 
-        <div className="flex items-center ml-2">
-          <p className='text-gray-600 text-sm'>token:</p>
-          <input type="text" className='w-80  border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
-        </div>
-        <div className="flex items-center ml-2">
-          <p className='text-gray-600 text-sm'>分支:</p>
-          <select defaultValue={"dev"} className='border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none'>
-            <option value="master">master</option>
-            <option value="dev">dev</option>
-          </select>
-        </div>
-        <div className="flex items-baseline ml-auto">
-          <p className='text-gray-500 text-sm'>*数据只会存在本地，请放心使用</p>
-          <p className='text-gray-500 text-sm ml-2'>*帮助</p>
-          <button className='bg-green-300 text-white text-sm border rounded px-3 py-1 ml-2'>保 存</button>
-        </div>
-      </div>
       <div className="flex mt-3">
         <div className="bg-white border shadow rounded w-1/3">
           <div
