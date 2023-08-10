@@ -1,4 +1,5 @@
-import { getCurrentDate } from "@/utils/helper";
+import { top_path } from "@/utils/const";
+import { getCurrentDate, getRawUrl, getCdnUrl } from "@/utils/helper";
 import { Octokit } from "@octokit/core";
 import { NextResponse } from "next/server";
 
@@ -30,30 +31,40 @@ export async function GET(req) {
   const branch = searchParams.get("branch")
   const sha = searchParams.get("sha")
 
+  const second_path = getCurrentDate()
   let list = []
-  const top_path = "images"
-  const trees = await getTrees(token, owner, repo, branch)
-  const image_tree = trees.filter(item => item.path == top_path)
-  if (image_tree.length == 0) {
-    return NextResponse.json({ list })
+  let sha1 = sha
+  let trees = await getTrees(token, owner, repo, sha || branch)
+  console.log("1: ", trees);
+  if (!sha) {
+    trees = trees.filter(item => item.path == top_path)
+    if (trees.length == 0) {
+      return NextResponse.json({ list })
+    }
+
+    //第二级目录
+    trees = await getTrees(token, owner, repo, trees[0].sha)
+    trees = trees.filter(item => item.type == "tree" && item.path == second_path)
+    if (trees.length == 0) {
+      return NextResponse.json({ list })
+    }
+    sha1 = trees[0].sha
+    console.log("2: ", trees);
+    //第后一级目录
+    trees = await getTrees(token, owner, repo, sha1)
+    trees = trees.filter(item => item.type == "blob")
+    console.log("3: ", trees);
+    if (trees.length == 0) {
+      return NextResponse.json({ list })
+    }
   }
 
-  let date_trees = await getTrees(token, owner, repo, image_tree[0].sha)
-  date_trees = date_trees.filter(item => item.type == "tree" && item.path == getCurrentDate())
-  if (date_trees.length == 0) {
-    return NextResponse.json({ list })
-  }
-
-  const second_path = date_trees[0].path
-  let img_trees = await getTrees(token, owner, repo, date_trees[0].sha)
-  img_trees = img_trees.filter(item => item.type == "blob")
-
-  list = img_trees.map(item => {
+  list = trees.map(item => {
     const path = `${top_path}/${second_path}/${item.path}`
     const raw_url = getRawUrl(owner, repo, branch, path)
     const cdn_url = getCdnUrl(owner, repo, branch, path)
     return { raw_url, cdn_url }
   })
 
-  return NextResponse.json({ list })
+  return NextResponse.json({ sha1, list })
 };

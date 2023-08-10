@@ -16,7 +16,7 @@ export default function Page() {
   useEffect(() => {
     const getSettings = async () => {
       const settings = localStorage.getItem("settings")
-      console.log("settings", settings);
+      console.log("settings: ", settings);
       if (settings) {
         const { owner, repo, token, branch, sha } = JSON.parse(settings)
         setUrl(`${owner}/${repo}`)
@@ -32,26 +32,30 @@ export default function Page() {
     getSettings()
   }, [])
 
+  useEffect(() => {
+    const getImages = async () => {
+      const res = await fetch(`/api/images?token=${token}&owner=${owner}&repo=${repo}&branch=${branch}`)
+      const data = await res.json()
+      console.log("getImages data: ", data);
+      if (data.sha1) {
+        setSha(data.sha1)
+      }
+    }
+
+    if (token && owner && repo) {
+      getImages()
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (sha) {
+      handleSave()
+    }
+  }, [sha])
+
   const handleFileChange = async (event) => {
     let f = event.target.files[0]
-    const base64 = await toBase64(f);
-    console.log("selectedFile", base64);
-  };
 
-  const toBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const fileReader = new FileReader();
-
-      fileReader.readAsDataURL(file);
-
-      fileReader.onload = () => {
-        resolve(fileReader.result);
-      };
-
-      fileReader.onerror = (error) => {
-        reject(error);
-      };
-    });
   };
 
   const parseRepoUrl = (url) => {

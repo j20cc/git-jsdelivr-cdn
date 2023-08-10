@@ -40,14 +40,14 @@ export async function POST(req) {
         "X-GitHub-Api-Version": "2022-11-28"
       }
     })
+
+    if (res.status == 201) {
+      const raw_url = getRawUrl(owner, repo, branch, path)
+      const cdn_url = getCdnUrl(owner, repo, branch, path)
+      return NextResponse.json({ raw_url, cdn_url })
+    }
   } catch (error) {
     return NextResponse.json({ message: "upload fail" }, { status: 400 })
-  }
-
-  if (res.status == 201) {
-    const raw_url = getRawUrl(owner, repo, branch, path)
-    const cdn_url = getCdnUrl(owner, repo, branch, path)
-    return NextResponse.json({ raw_url, cdn_url })
   }
 
   return NextResponse.json({ message: "upload fail" }, { status: 400 })
