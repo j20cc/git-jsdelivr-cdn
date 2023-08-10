@@ -2,7 +2,7 @@ import { Octokit } from "@octokit/core";
 import { NextResponse } from "next/server";
 const { createHash } = require("crypto");
 import { getCurrentDate, generateRandomNumber, getRawUrl, getCdnUrl } from "@/utils/helper";
-import { top_path } from "@/utils/const"; const from "@/utils/const";
+import { top_path } from "@/utils/const";
 
 const home_page = "https://ipic.j20.cc"
 const committer_name = "luke_44"
