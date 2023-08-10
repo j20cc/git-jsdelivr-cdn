@@ -18,7 +18,7 @@ export async function POST(req) {
   const branch = form.get("branch")
   const owner = form.get("owner")
   const repo = form.get("repo")
-  const path = `${top_path}/${getCurrentDate()}/${generateRandomNumber()}_${file.name} `
+  const path = `${top_path}/${getCurrentDate()}/${generateRandomNumber()}_${file.name}`
 
   try {
     // Octokit.js
