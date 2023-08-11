@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 
 export default function Page() {
   const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [images, setImages] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [url, setUrl] = useState('')
   const [branches, setBranches] = useState(['master', 'main'])
@@ -16,7 +18,7 @@ export default function Page() {
   useEffect(() => {
     const getSettings = async () => {
       const settings = localStorage.getItem("settings")
-      console.log("settings: ", settings);
+      console.log("get settings: ", settings);
       if (settings) {
         const { owner, repo, token, branch, sha } = JSON.parse(settings)
         setUrl(`${owner}/${repo}`)
@@ -39,6 +41,7 @@ export default function Page() {
       console.log("getImages data: ", data);
       if (data.sha1) {
         setSha(data.sha1)
+        setImages(data.list)
       }
     }
 
@@ -53,9 +56,41 @@ export default function Page() {
     }
   }, [sha])
 
+  useEffect(() => {
+    if (selectedFile) {
+      handleFileUpload()
+    }
+  }, [selectedFile])
+
   const handleFileChange = async (event) => {
     let f = event.target.files[0]
+    setSelectedFile(f)
+  };
 
+  const handleFileUpload = async () => {
+    setUploading(true)
+    let formdata = new FormData();
+    formdata.append("token", token);
+    formdata.append("file", selectedFile);
+    formdata.append("owner", owner);
+    formdata.append("repo", repo);
+    formdata.append("branch", branch);
+
+    const requestOptions = {
+      method: 'POST',
+      body: formdata,
+    };
+
+    fetch("/api/upload", requestOptions)
+      .then(response => response.text())
+      .then(result => {
+        console.log(result)
+        setUploading(false)
+      })
+      .catch(error => {
+        console.log('error', error)
+        setUploading(false)
+      });
   };
 
   const parseRepoUrl = (url) => {
@@ -89,7 +124,6 @@ export default function Page() {
     setDragging(false);
 
     const file = e.dataTransfer.files[0];
-    console.log(file);
     setSelectedFile(file);
   };
 
@@ -131,7 +165,7 @@ export default function Page() {
       branch,
       sha
     }
-    console.log("setting_info", setting_info);
+    console.log("set settings: ", setting_info);
     localStorage.setItem("settings", JSON.stringify(setting_info));
   }
 
@@ -167,7 +201,7 @@ export default function Page() {
     <div className="container mx-auto py-10">
       {renderSetting()}
 
-      <div className="flex mt-3">
+      <div className="flex mt-3 items-start">
         <div className="bg-white border shadow rounded w-1/3">
           <div
             onDragEnter={handleDragEnter}
@@ -189,7 +223,9 @@ export default function Page() {
               style={{ display: "none" }}
               onChange={handleFileChange}
             />
-            <p className="text-gray-500 text-sm mt-5 text-center">正在上传: xxxxxxx</p>
+            {
+              uploading ? <p className="text-gray-500 text-sm mt-5 text-center">正在上传: {selectedFile.name}</p> : <p className="text-gray-500 text-sm mt-5 text-center">选择图片</p>
+            }
           </div>
         </div>
 
@@ -197,6 +233,11 @@ export default function Page() {
           <div className="px-3 flex items-baseline border-b py-2">
             <p className="text-gray-700 text-lg font-bold">列表</p>
             <p className="text-gray-500 text-sm ml-3">仅显示今日上传记录</p>
+          </div>
+          <div>
+            {images.map((item, index) => {
+              return <Image src={item.cdn_url} alt="branches" width="64" height="64" className="mx-auto" />
+            })}
           </div>
         </div>
       </div>
