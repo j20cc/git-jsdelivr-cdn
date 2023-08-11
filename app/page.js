@@ -23,7 +23,9 @@ export default function Page() {
       console.log("get settings: ", settings);
       if (settings) {
         const { owner, repo, token, branch, sha } = JSON.parse(settings)
-        setUrl(`${owner}/${repo}`)
+        if (owner && repo) {
+          setUrl(`${owner}/${repo}`)
+        }
         setOwner(owner)
         setRepo(repo)
         setToken(token)
@@ -38,18 +40,16 @@ export default function Page() {
   }, [])
 
   useEffect(() => {
-
-    if (token && owner && repo) {
-      getImages()
-    }
-  }, [token])
-
-  useEffect(() => {
     if (sha) {
-      handleSave()
+      handleSaveSetting()
     }
   }, [sha])
 
+  useEffect(() => {
+    if (hasSetting) {
+      getImages()
+    }
+  }, [hasSetting])
 
   useEffect(() => {
     if (selectedFile) {
@@ -63,9 +63,11 @@ export default function Page() {
   };
 
   const getImages = async () => {
+    const toastId = toast.loading('获取图片列表...');
     const res = await fetch(`/api/images?token=${token}&owner=${owner}&repo=${repo}&branch=${branch}`)
     const data = await res.json()
     console.log("getImages data: ", data);
+    toast.dismiss(toastId);
     if (data.sha1) {
       setSha(data.sha1)
       setImages(data.list)
@@ -89,9 +91,9 @@ export default function Page() {
     fetch("/api/upload", requestOptions)
       .then(response => response.text())
       .then(result => {
-        console.log(result)
+        console.log("upload result: ", result)
         setUploading(false)
-        getImages()
+        images.unshift(result)
         toast.success("上传成功")
       })
       .catch(error => {
@@ -145,6 +147,7 @@ export default function Page() {
       setOwner(info.owner)
       setRepo(info.repo)
       setUrl(`${info.owner}/${info.repo}`)
+      handleGetBranches()
     }
   }
 
@@ -165,13 +168,17 @@ export default function Page() {
     }
   }
 
-  const handleSave = () => {
+  const handleSaveSetting = (v) => {
     const setting_info = {
       token,
       owner,
       repo,
       branch,
       sha
+    }
+    if (v == 1) {
+      setHasSetting(true)
+      getImages()
     }
     console.log("set settings: ", setting_info);
     localStorage.setItem("settings", JSON.stringify(setting_info));
@@ -227,7 +234,7 @@ export default function Page() {
 
         <button
           className={`${hasSetting ? 'bg-green-300' : 'bg-green-400'} text-white text-sm border rounded px-3 py-1 ml-2`}
-          onClick={handleSave}
+          onClick={() => { handleSaveSetting(1) }}
         >{hasSetting ? "已保存" : "保 存"}</button>
       </div>
     </div >)

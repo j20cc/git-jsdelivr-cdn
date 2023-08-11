@@ -18,7 +18,8 @@ export async function POST(req) {
   const branch = form.get("branch")
   const owner = form.get("owner")
   const repo = form.get("repo")
-  const path = `${top_path}/${getCurrentDate()}/${generateRandomNumber()}_${file.name}`
+  const name = file.name
+  const path = `${top_path}/${getCurrentDate()}/${generateRandomNumber()}_${name}`
 
   try {
     // Octokit.js
@@ -44,7 +45,7 @@ export async function POST(req) {
     if (res.status == 201) {
       const raw_url = getRawUrl(owner, repo, branch, path)
       const cdn_url = getCdnUrl(owner, repo, branch, path)
-      return NextResponse.json({ raw_url, cdn_url })
+      return NextResponse.json({ name, raw_url, cdn_url })
     }
   } catch (error) {
     return NextResponse.json({ message: "upload fail" }, { status: 400 })
