@@ -15,7 +15,8 @@
     "formidable": "^3.5.0",
     "next": "13.4.12",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-hot-toast": "^2.4.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",

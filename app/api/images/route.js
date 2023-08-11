@@ -61,9 +61,10 @@ export async function GET(req) {
 
   list = trees.map(item => {
     const path = `${top_path}/${second_path}/${item.path}`
+    const name = item.path
     const raw_url = getRawUrl(owner, repo, branch, path)
     const cdn_url = getCdnUrl(owner, repo, branch, path)
-    return { raw_url, cdn_url }
+    return { name, raw_url, cdn_url }
   })
 
   return NextResponse.json({ sha1, list })
