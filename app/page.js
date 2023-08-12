@@ -89,7 +89,7 @@ export default function Page() {
     };
 
     fetch("/api/upload", requestOptions)
-      .then(response => response.text())
+      .then(response => response.json())
       .then(result => {
         console.log("upload result: ", result)
         setUploading(false)
@@ -209,35 +209,36 @@ export default function Page() {
   }
 
   const renderSetting = () => {
-    return (<div className="bg-white border shadow rounded px-3 py-2 flex items-center">
-      <div className="flex items-center">
-        <p className='text-gray-600 text-sm'>存储仓库:</p>
-        <input
-          placeholder='输入 git 仓库链接'
-          value={url} onChange={e => setUrl(e.target.value)} onBlur={handleParseGithub}
-          type="text" className='border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
-      </div>
+    return (
+      <div className="bg-white border shadow rounded px-3 py-2 flex-row md:flex items-center">
+        <div className="flex items-center">
+          <p className='text-gray-600 text-sm'>存储仓库:</p>
+          <input
+            placeholder='输入 git 仓库链接'
+            value={url} onChange={e => setUrl(e.target.value)} onBlur={handleParseGithub}
+            type="text" className='border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
+        </div>
 
-      <div className="flex items-center ml-2">
-        <p className='text-gray-600 text-sm'>token:</p>
-        <input placeholder='输入具有该仓库读写权限的 token' value={token} onChange={e => setToken(e.target.value)} onBlur={handleGetBranches} type="text" className='w-80  border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
-      </div>
-      <div className="flex items-center ml-2">
-        <p className='text-gray-600 text-sm'>分支:</p>
-        <select onChange={e => setBranch(e.target.value)} defaultValue={branch} className='border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none'>
-          {branches.map(item => <option value={item} key={item}>{item}</option>)}
-        </select>
-      </div>
-      <div className="flex items-baseline ml-auto">
-        <p className='text-gray-500 text-sm'>*数据只会存在本地，请放心使用</p>
-        <p className='text-gray-500 text-sm ml-2'>*帮助</p>
+        <div className="flex items-center md:ml-2">
+          <p className='text-gray-600 text-sm'>token:</p>
+          <input placeholder='输入具有该仓库读写权限的 token' value={token} onChange={e => setToken(e.target.value)} onBlur={handleGetBranches} type="text" className='w-80  border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
+        </div>
+        <div className="flex items-center md:ml-2">
+          <p className='text-gray-600 text-sm'>分支:</p>
+          <select onChange={e => setBranch(e.target.value)} defaultValue={branch} className='border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none'>
+            {branches.map(item => <option value={item} key={item}>{item}</option>)}
+          </select>
+        </div>
+        <div className="flex items-baseline ml-auto">
+          <p className='text-gray-500 text-sm'>*数据只会存在本地，请放心使用</p>
+          <p className='text-gray-500 text-sm ml-2'>*帮助</p>
 
-        <button
-          className={`${hasSetting ? 'bg-green-300' : 'bg-green-400'} text-white text-sm border rounded px-3 py-1 ml-2`}
-          onClick={() => { handleSaveSetting(1) }}
-        >{hasSetting ? "已保存" : "保 存"}</button>
-      </div>
-    </div >)
+          <button
+            className={`${hasSetting ? 'bg-green-300' : 'bg-green-400'} text-white text-sm border rounded px-3 py-1 ml-2`}
+            onClick={() => { handleSaveSetting(1) }}
+          >{hasSetting ? "已保存" : "保 存"}</button>
+        </div>
+      </div >)
   }
 
   const renderCopyButton = (title, item) => {
@@ -251,12 +252,18 @@ export default function Page() {
 
   // https://api.github.com/repos/tw93/Maple/branches
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-5 md:py-10 px-5 md:px-0">
       <Toaster />
+
+      <div className="flex items-baseline mb-3 text-gray-700">
+        <h3 className='text-2xl'>图床机</h3>
+        <p className='ml-2'>把你的 github 仓库变成免费图床</p>
+      </div>
+
       {renderSetting()}
 
-      <div className="flex mt-3 items-start">
-        <div className="bg-white border shadow rounded w-1/3">
+      <div className="flex-row md:flex mt-3 items-start">
+        <div className="bg-white border shadow rounded md:w-1/3">
           <div
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
@@ -284,7 +291,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="bg-white border shadow rounded w-2/3 ml-5">
+        <div className="bg-white border shadow rounded md:w-2/3 md:ml-5 mt-3 md:mt-0">
           <div className="px-3 flex items-baseline border-b py-2">
             <p className="text-gray-700 text-lg font-bold">列表</p>
             <p className="text-gray-500 text-sm ml-3">仅显示今日上传记录</p>
