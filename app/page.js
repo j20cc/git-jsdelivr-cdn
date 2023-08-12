@@ -209,7 +209,7 @@ export default function Page() {
   }
   const handleCopy = (type, info) => {
     let text = info.cdn_url
-    if (type == 'markwdown') {
+    if (type == 'markdown') {
       text = `![${info.name}](${info.cdn_url})`
     } else if (type == 'html') {
       text = `<img src="${info.cdn_url}" alt="${info.name}" width="100" height="100"></img>`
@@ -344,7 +344,7 @@ export default function Page() {
                         <p className="w-2"></p>
                         {renderCopyButton("html", child)}
                         <p className="w-2"></p>
-                        {renderCopyButton("markwdown", child)}
+                        {renderCopyButton("markdown", child)}
                       </div>
                     </div>)
                   })}
