@@ -1,11 +1,12 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
+import { app_description, app_name } from '@/utils/const'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: '图床机',
-  description: '把你的 github 仓库当成免费图床',
+  title: app_name,
+  description: app_description,
 }
 
 export default function RootLayout({ children }) {

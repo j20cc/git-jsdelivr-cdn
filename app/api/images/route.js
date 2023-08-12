@@ -3,6 +3,8 @@ import { getCurrentDate, getRawUrl, getCdnUrl } from "@/utils/helper";
 import { Octokit } from "@octokit/core";
 import { NextResponse } from "next/server";
 
+const vip_users = ['j20cc']
+
 async function getTrees(token, owner, repo, sha) {
   try {
     // Octokit.js
@@ -31,41 +33,57 @@ export async function GET(req) {
   const branch = searchParams.get("branch")
   const sha = searchParams.get("sha")
 
-  const second_path = getCurrentDate()
   let list = []
-  let sha1 = sha
-  let trees = await getTrees(token, owner, repo, sha || branch)
-  console.log("1: ", trees);
-  if (!sha) {
-    trees = trees.filter(item => item.path == top_path)
-    if (trees.length == 0) {
-      return NextResponse.json({ list })
-    }
-
-    //第二级目录
-    trees = await getTrees(token, owner, repo, trees[0].sha)
-    trees = trees.filter(item => item.type == "tree" && item.path == second_path)
-    if (trees.length == 0) {
-      return NextResponse.json({ list })
-    }
-    sha1 = trees[0].sha
-    console.log("2: ", trees);
-    //第后一级目录
-    trees = await getTrees(token, owner, repo, sha1)
-    trees = trees.filter(item => item.type == "blob")
-    console.log("3: ", trees);
-    if (trees.length == 0) {
-      return NextResponse.json({ list })
-    }
+  let second_path = getCurrentDate()
+  const vip = vip_users.includes(owner)
+  let sha1 = ''
+  if (vip && sha) {
+    sha1 = sha
+  }
+  let trees = await getTrees(token, owner, repo, branch)
+  trees = trees.filter(item => item.path == top_path)
+  if (trees.length == 0) {
+    return NextResponse.json({ vip, list })
   }
 
-  list = trees.map(item => {
-    const path = `${top_path}/${second_path}/${item.path}`
-    const name = item.path
-    const raw_url = getRawUrl(owner, repo, branch, path)
-    const cdn_url = getCdnUrl(owner, repo, branch, path)
-    return { name, raw_url, cdn_url }
+  //第二级目录
+  trees = await getTrees(token, owner, repo, trees[0].sha)
+  list = trees.filter(item => item.type == "tree").map(item => {
+    let fold = false
+    let children = []
+    if (!sha1 && item.path == second_path) {
+      fold = true
+      sha1 = item.sha
+    }
+    if (sha1 && item.sha == sha1) {
+      fold = true
+      second_path = item.path
+    }
+    return { ...item, fold, children }
   })
+  if (list.length == 0) {
+    return NextResponse.json({ vip, list })
+  }
 
-  return NextResponse.json({ sha1, list })
+  if (sha1) {
+    console.log("sha1: ", sha1);
+    let children = await getTrees(token, owner, repo, sha1)
+    console.log("children: ", children);
+    children = children.filter(item => item.type == "blob")
+      .map(item => {
+        const new_path = `${top_path}/${second_path}/${item.path}`
+        const raw_url = getRawUrl(owner, repo, branch, new_path)
+        const cdn_url = getCdnUrl(owner, repo, branch, new_path)
+        return { ...item, raw_url, cdn_url }
+      })
+    list = list.map(item => {
+      if (item.fold) {
+        return { ...item, children }
+      } else {
+        return item
+      }
+    })
+  }
+  list.sort((a, b) => b.path - a.path);
+  return NextResponse.json({ vip, list })
 };

@@ -1,4 +1,5 @@
 'use client'
+import { app_description, app_name } from '@/utils/const';
 import Image from 'next/image'
 import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -7,7 +8,6 @@ export default function Page() {
   const [dragging, setDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [hasSetting, setHasSetting] = useState(false)
-  const [images, setImages] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [url, setUrl] = useState('')
   const [branches, setBranches] = useState(['master', 'main'])
@@ -15,14 +15,15 @@ export default function Page() {
   const [repo, setRepo] = useState('')
   const [token, setToken] = useState('')
   const [branch, setBranch] = useState(branches[0])
-  const [sha, setSha] = useState('')
+  const [vip, setVip] = useState(false)
+  const [list, setList] = useState([]);
 
   useEffect(() => {
     const getSettings = async () => {
       const settings = localStorage.getItem("settings")
       console.log("get settings: ", settings);
       if (settings) {
-        const { owner, repo, token, branch, sha } = JSON.parse(settings)
+        const { owner, repo, token, branch, vip } = JSON.parse(settings)
         if (owner && repo) {
           setUrl(`${owner}/${repo}`)
         }
@@ -31,19 +32,13 @@ export default function Page() {
         setToken(token)
         setBranch(branch)
         setBranches([branch])
-        setSha(sha)
+        setVip(vip)
         setHasSetting(true)
       }
     }
 
     getSettings()
   }, [])
-
-  useEffect(() => {
-    if (sha) {
-      handleSaveSetting()
-    }
-  }, [sha])
 
   useEffect(() => {
     if (hasSetting) {
@@ -62,15 +57,15 @@ export default function Page() {
     setSelectedFile(f)
   };
 
-  const getImages = async () => {
+  const getImages = async (sha) => {
     const toastId = toast.loading('获取图片列表...');
-    const res = await fetch(`/api/images?token=${token}&owner=${owner}&repo=${repo}&branch=${branch}`)
+    const res = await fetch(`/api/images?token=${token}&owner=${owner}&repo=${repo}&branch=${branch}&sha=${sha || ''}`)
     const data = await res.json()
     console.log("getImages data: ", data);
     toast.dismiss(toastId);
-    if (data.sha1) {
-      setSha(data.sha1)
-      setImages(data.list)
+    if (data) {
+      setVip(data.vip)
+      setList(data.list)
     }
   }
 
@@ -174,7 +169,7 @@ export default function Page() {
       owner,
       repo,
       branch,
-      sha
+      vip
     }
     if (v == 1) {
       setHasSetting(true)
@@ -184,6 +179,34 @@ export default function Page() {
     localStorage.setItem("settings", JSON.stringify(setting_info));
   }
 
+  const handleDel = async (path, sha) => {
+    console.log("handleDel: ", path);
+    if (path) {
+      const URL = `https://api.github.com/repos/${owner}/${repo}/contents/images/${path}`;
+      const headers = new Headers({
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+      });
+      const body = JSON.stringify({
+        message: "delete by https://ipic.j20.cc",
+        committer: {
+          name: "luke_44",
+          email: "luke_44@163.com"
+        },
+        sha: sha,
+      });
+      const response = await fetch(URL, { method: 'DELETE', headers: headers, body: body, })
+      const data = await response.json();
+      console.log("del data: ", data);
+      if (data.status == 200) {
+        getImages()
+      } else {
+        toast.error("删除失败")
+      }
+    }
+  }
   const handleCopy = (type, info) => {
     let text = info.cdn_url
     if (type == 'markwdown') {
@@ -250,14 +273,13 @@ export default function Page() {
     )
   }
 
-  // https://api.github.com/repos/tw93/Maple/branches
   return (
     <div className="container mx-auto py-5 md:py-10 px-5 md:px-0">
       <Toaster />
 
-      <div className="flex items-baseline mb-3 text-gray-700">
-        <h3 className='text-2xl'>图床机</h3>
-        <p className='ml-2'>把你的 github 仓库变成免费图床</p>
+      <div className="flex items-baseline mb-3">
+        <h3 className='text-2xl non-italic text-gray-700 font-mono'>{app_name}</h3>
+        <p className='ml-2 italic text-gray-600'>{app_description}</p>
       </div>
 
       {renderSetting()}
@@ -294,21 +316,38 @@ export default function Page() {
         <div className="bg-white border shadow rounded md:w-2/3 md:ml-5 mt-3 md:mt-0">
           <div className="px-3 flex items-baseline border-b py-2">
             <p className="text-gray-700 text-lg font-bold">列表</p>
-            <p className="text-gray-500 text-sm ml-3">仅显示今日上传记录</p>
+            <p className="text-gray-500 text-sm ml-3">免费用户仅显示今日上传记录，付费用户支持目录树和删除功能</p>
+            <p className="text-gray-600 text-sm ml-3 underline cursor-pointer">*升级</p>
           </div>
-          <div>
-            {images.map((item, index) => {
+          <div className='py-2'>
+            {list.map((item, index) => {
               return (
-                <div key={index} className="flex items-center px-2 mt-1">
-                  <Image src={item.cdn_url} alt="image" width="48" height="48" className="" />
-                  <p className="text-gray-500 text-sm ml-3">{item.name}</p>
-                  <div className="ml-auto flex items-center">
-                    {renderCopyButton("url", item)}
-                    <p className="w-2"></p>
-                    {renderCopyButton("html", item)}
-                    <p className="w-2"></p>
-                    {renderCopyButton("markwdown", item)}
+                <div key={index}>
+                  <div className="flex-row md:flex items-center px-2 mt-1 cursor-pointer" onClick={() => vip && getImages(item.sha)}>
+                    <Image src={item.fold ? "/assets/folder-open.png" : "/assets/folder.png"} alt="image" width="32" height="32" className="hidden md:block" />
+                    <p className="text-gray-500 text-sm ml-0 md:ml-3">{item.path}</p>
                   </div>
+
+                  {item.children.map((child, idx) => {
+                    return (<div key={idx} className="pl-4 flex-row md:flex items-center px-2 mt-2">
+                      <Image src={child.cdn_url} alt="image" width="32" height="32" className="hidden md:block" />
+                      <p className="text-gray-500 text-sm ml-0 md:ml-3">{`${item.path}/${child.path}`}</p>
+                      <div className="ml-auto flex items-center">
+                        {
+                          vip && <div className="bg-red-300 text-white text-sm border rounded px-3 py-1 cursor-pointer flex items-center" onClick={() => handleDel(`${item.path}/${child.path}`, child.sha)}>
+                            <svg t="1691859359859" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="30152" width="16" height="16"><path d="M938.666667 204.8H85.333333a34.133333 34.133333 0 0 1 0-68.266667h853.333334a34.133333 34.133333 0 0 1 0 68.266667z" p-id="30153" fill="#ffffff"></path><path d="M768 955.733333H256c-66.030933 0-102.4-36.369067-102.4-102.4V170.666667a17.066667 17.066667 0 0 1 34.133333 0v682.666666c0 47.223467 21.0432 68.266667 68.266667 68.266667h512c47.223467 0 68.266667-21.0432 68.266667-68.266667V170.666667a17.066667 17.066667 0 1 1 34.133333 0v682.666666c0 66.030933-36.369067 102.4-102.4 102.4z m-85.333333-170.666666a17.066667 17.066667 0 0 1-17.066667-17.066667V341.333333a17.066667 17.066667 0 1 1 34.133333 0v426.666667a17.066667 17.066667 0 0 1-17.066666 17.066667z m-169.813334 0a17.066667 17.066667 0 0 1-17.066666-17.066667V341.333333a17.066667 17.066667 0 0 1 34.133333 0v426.666667a17.066667 17.066667 0 0 1-17.066667 17.066667zM341.333333 785.066667a17.066667 17.066667 0 0 1-17.066666-17.066667V341.333333a17.066667 17.066667 0 0 1 34.133333 0v426.666667a17.066667 17.066667 0 0 1-17.066667 17.066667z m256-597.333334a17.066667 17.066667 0 0 1-17.066666-17.066666V102.4h-136.533334v68.266667a17.066667 17.066667 0 0 1-34.133333 0V85.333333a17.066667 17.066667 0 0 1 17.066667-17.066666h170.666666a17.066667 17.066667 0 0 1 17.066667 17.066666v85.333334a17.066667 17.066667 0 0 1-17.066667 17.066666z" p-id="30154" fill="#ffffff"></path></svg>
+                            <p className='ml-2'>删除</p>
+                          </div >
+                        }
+                        <p className="w-2"></p>
+                        {renderCopyButton("url", child)}
+                        <p className="w-2"></p>
+                        {renderCopyButton("html", child)}
+                        <p className="w-2"></p>
+                        {renderCopyButton("markwdown", child)}
+                      </div>
+                    </div>)
+                  })}
                 </div>
               )
             })}
