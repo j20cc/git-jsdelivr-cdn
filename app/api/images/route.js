@@ -31,14 +31,13 @@ export async function GET(req) {
   const owner = searchParams.get("owner")
   const repo = searchParams.get("repo")
   const branch = searchParams.get("branch")
-  const sha = searchParams.get("sha")
+  const path = searchParams.get("path")
 
   let list = []
   let second_path = getCurrentDate()
   const vip = vip_users.includes(owner)
-  let sha1 = ''
-  if (vip && sha) {
-    sha1 = sha
+  if (vip && path) {
+    second_path = path
   }
   let trees = await getTrees(token, owner, repo, branch)
   trees = trees.filter(item => item.path == top_path)
@@ -47,17 +46,14 @@ export async function GET(req) {
   }
 
   //第二级目录
+  let sha1 = ''
   trees = await getTrees(token, owner, repo, trees[0].sha)
   list = trees.filter(item => item.type == "tree").map(item => {
     let fold = false
     let children = []
-    if (!sha1 && item.path == second_path) {
+    if (item.path == second_path) {
       fold = true
       sha1 = item.sha
-    }
-    if (sha1 && item.sha == sha1) {
-      fold = true
-      second_path = item.path
     }
     return { ...item, fold, children }
   })

@@ -1,5 +1,6 @@
 'use client'
 import { app_description, app_name } from '@/utils/const';
+import { getCurrentDate } from '@/utils/helper';
 import Image from 'next/image'
 import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -57,9 +58,9 @@ export default function Page() {
     setSelectedFile(f)
   };
 
-  const getImages = async (sha) => {
+  const getImages = async (path) => {
     const toastId = toast.loading('获取图片列表...');
-    const res = await fetch(`/api/images?token=${token}&owner=${owner}&repo=${repo}&branch=${branch}&sha=${sha || ''}`)
+    const res = await fetch(`/api/images?token=${token}&owner=${owner}&repo=${repo}&branch=${branch}&path=${path || ''}`)
     const data = await res.json()
     console.log("getImages data: ", data);
     toast.dismiss(toastId);
@@ -88,8 +89,8 @@ export default function Page() {
       .then(result => {
         console.log("upload result: ", result)
         setUploading(false)
-        images.unshift(result)
         toast.success("上传成功")
+        getImages()
       })
       .catch(error => {
         toast.error("上传失败")
@@ -179,32 +180,30 @@ export default function Page() {
     localStorage.setItem("settings", JSON.stringify(setting_info));
   }
 
-  const handleDel = async (path, sha) => {
-    console.log("handleDel: ", path);
-    if (path) {
-      const URL = `https://api.github.com/repos/${owner}/${repo}/contents/images/${path}`;
-      const headers = new Headers({
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        'Content-Type': 'application/json',
-      });
-      const body = JSON.stringify({
-        message: "delete by https://ipic.j20.cc",
-        committer: {
-          name: "luke_44",
-          email: "luke_44@163.com"
-        },
-        sha: sha,
-      });
-      const response = await fetch(URL, { method: 'DELETE', headers: headers, body: body, })
-      const data = await response.json();
-      console.log("del data: ", data);
-      if (data.status == 200) {
-        getImages()
-      } else {
-        toast.error("删除失败")
-      }
+  const handleDel = async (path1, path2, sha) => {
+    console.log("handleDel: ", path1, path2, sha);
+    const URL = `https://api.github.com/repos/${owner}/${repo}/contents/images/${path1}/${path2}`;
+    const headers = new Headers({
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Type': 'application/json',
+    });
+    const body = JSON.stringify({
+      message: "delete by https://ipic.j20.cc",
+      committer: {
+        name: "luke_44",
+        email: "luke_44@163.com"
+      },
+      sha: sha,
+    });
+    const response = await fetch(URL, { method: 'DELETE', headers: headers, body: body, })
+    const data = await response.json();
+    console.log("del data: ", data);
+    if (response.status == 200) {
+      getImages(path1)
+    } else {
+      toast.error("删除失败")
     }
   }
   const handleCopy = (type, info) => {
@@ -323,7 +322,7 @@ export default function Page() {
             {list.map((item, index) => {
               return (
                 <div key={index}>
-                  <div className="flex-row md:flex items-center px-2 mt-1 cursor-pointer" onClick={() => vip && getImages(item.sha)}>
+                  <div className="flex-row md:flex items-center px-2 mt-1 cursor-pointer" onClick={() => vip && getImages(item.path)}>
                     <Image src={item.fold ? "/assets/folder-open.png" : "/assets/folder.png"} alt="image" width="32" height="32" className="hidden md:block" />
                     <p className="text-gray-500 text-sm ml-0 md:ml-3">{item.path}</p>
                   </div>
@@ -334,8 +333,8 @@ export default function Page() {
                       <p className="text-gray-500 text-sm ml-0 md:ml-3">{`${item.path}/${child.path}`}</p>
                       <div className="ml-auto flex items-center">
                         {
-                          vip && <div className="bg-red-300 text-white text-sm border rounded px-3 py-1 cursor-pointer flex items-center" onClick={() => handleDel(`${item.path}/${child.path}`, child.sha)}>
-                            <svg t="1691859359859" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="30152" width="16" height="16"><path d="M938.666667 204.8H85.333333a34.133333 34.133333 0 0 1 0-68.266667h853.333334a34.133333 34.133333 0 0 1 0 68.266667z" p-id="30153" fill="#ffffff"></path><path d="M768 955.733333H256c-66.030933 0-102.4-36.369067-102.4-102.4V170.666667a17.066667 17.066667 0 0 1 34.133333 0v682.666666c0 47.223467 21.0432 68.266667 68.266667 68.266667h512c47.223467 0 68.266667-21.0432 68.266667-68.266667V170.666667a17.066667 17.066667 0 1 1 34.133333 0v682.666666c0 66.030933-36.369067 102.4-102.4 102.4z m-85.333333-170.666666a17.066667 17.066667 0 0 1-17.066667-17.066667V341.333333a17.066667 17.066667 0 1 1 34.133333 0v426.666667a17.066667 17.066667 0 0 1-17.066666 17.066667z m-169.813334 0a17.066667 17.066667 0 0 1-17.066666-17.066667V341.333333a17.066667 17.066667 0 0 1 34.133333 0v426.666667a17.066667 17.066667 0 0 1-17.066667 17.066667zM341.333333 785.066667a17.066667 17.066667 0 0 1-17.066666-17.066667V341.333333a17.066667 17.066667 0 0 1 34.133333 0v426.666667a17.066667 17.066667 0 0 1-17.066667 17.066667z m256-597.333334a17.066667 17.066667 0 0 1-17.066666-17.066666V102.4h-136.533334v68.266667a17.066667 17.066667 0 0 1-34.133333 0V85.333333a17.066667 17.066667 0 0 1 17.066667-17.066666h170.666666a17.066667 17.066667 0 0 1 17.066667 17.066666v85.333334a17.066667 17.066667 0 0 1-17.066667 17.066666z" p-id="30154" fill="#ffffff"></path></svg>
+                          vip && <div className="bg-red-300 text-white text-sm border rounded px-3 py-1 cursor-pointer flex items-center" onClick={() => handleDel(item.path, child.path, child.sha)}>
+                            <svg t="1691859359859" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="30152" width="16" height="16"><path d="M938.666667 204.8H85.333333a34.133333 34.133333 0 0 1 0-68.266667h853.333334a34.133333 34.133333 0 0 1 0 68.266667z" p-id="30153" fill="#ffffff"></path><path d="M768 955.733333H256c-66.030933 0-102.4-36.369067-102.4-102.4V170.666667a17.066667 17.066667 0 0 1 34.133333 0v682.666666c0 47.223467 21.0432 68.266667 68.266667 68.266667h512c47.223467 0 68.266667-21.0432 68.266667-68.266667V170.666667a17.066667 17.066667 0 1 1 34.133333 0v682.666666c0 66.030933-36.369067 102.4-102.4 102.4z m-85.333333-170.666666a17.066667 17.066667 0 0 1-17.066667-17.066667V341.333333a17.066667 17.066667 0 1 1 34.133333 0v426.666667a17.066667 17.066667 0 0 1-17.066666 17.066667z m-169.813334 0a17.066667 17.066667 0 0 1-17.066666-17.066667V341.333333a17.066667 17.066667 0 0 1 34.133333 0v426.666667a17.066667 17.066667 0 0 1-17.066667 17.066667zM341.333333 785.066667a17.066667 17.066667 0 0 1-17.066666-17.066667V341.333333a17.066667 17.066667 0 0 1 34.133333 0v426.666667a17.066667 17.066667 0 0 1-17.066667 17.066667z m256-597.333334a17.066667 17.066667 0 0 1-17.066666-17.066666V102.4h-136.533334v68.266667a17.066667 17.066667 0 0 1-34.133333 0V85.333333a17.066667 17.066667 0 0 1 17.066667-17.066666h170.666666a17.066667 17.066667 0 0 1 17.066667 17.066666v85.333334a17.066667 17.066667 0 0 1-17.066667 17.066666z" p-id="30154" fill="#ffffff"></path></svg>
                             <p className='ml-2'>删除</p>
                           </div >
                         }
