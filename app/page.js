@@ -197,13 +197,16 @@ export default function Page() {
       },
       sha: sha,
     });
-    const response = await fetch(URL, { method: 'DELETE', headers: headers, body: body, })
-    const data = await response.json();
-    console.log("del data: ", data);
-    if (response.status == 200) {
-      getImages(path1)
-    } else {
-      toast.error("删除失败")
+    if (window.confirm('确认删除?')) {
+      const response = await fetch(URL, { method: 'DELETE', headers: headers, body: body, })
+      const data = await response.json();
+      console.log("del data: ", data);
+      if (response.status == 200) {
+        toast.success("删除成功")
+        getImages(path1)
+      } else {
+        toast.error("删除失败")
+      }
     }
   }
   const handleCopy = (type, info) => {
