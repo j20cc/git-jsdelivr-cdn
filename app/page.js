@@ -2,6 +2,7 @@
 import { app_description, app_name } from '@/utils/const';
 import { getCurrentDate } from '@/utils/helper';
 import Image from 'next/image'
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -256,7 +257,7 @@ export default function Page() {
         </div>
         <div className="flex items-baseline ml-auto">
           <p className='text-gray-500 text-sm'>*数据只会存在本地，请放心使用</p>
-          <p className='text-gray-500 text-sm ml-2'>*帮助</p>
+          <Link href="/help" className='text-gray-500 text-sm ml-2 underline'>*帮助</Link>
 
           <button
             className={`${hasSetting ? 'bg-green-300' : 'bg-green-400'} text-white text-sm border rounded px-3 py-1 ml-2`}
@@ -319,7 +320,7 @@ export default function Page() {
           <div className="px-3 flex items-baseline border-b py-2">
             <p className="text-gray-700 text-lg font-bold">列表</p>
             <p className="text-gray-500 text-sm ml-3">免费用户仅显示今日上传记录，付费用户支持目录树和删除功能</p>
-            <p className="text-gray-600 text-sm ml-3 underline cursor-pointer">*升级</p>
+            {!vip && <Link href="/vip" className="text-gray-600 text-sm ml-3 underline cursor-pointer">*付费</Link>}
           </div>
           <div className='py-2'>
             {list.map((item, index) => {
