@@ -320,7 +320,7 @@ export default function Page() {
           <div className="px-3 flex items-baseline border-b py-2">
             <p className="text-gray-700 text-lg font-bold">列表</p>
             <p className="text-gray-500 text-sm ml-3">免费用户仅显示今日上传记录，付费用户支持目录树和删除功能</p>
-            {!vip && <Link href="/vip" className="text-gray-600 text-sm ml-3 underline cursor-pointer">*付费</Link>}
+            {!vip && <Link href="/help" className="text-gray-600 text-sm ml-3 underline cursor-pointer">*付费</Link>}
           </div>
           <div className='py-2'>
             {list.map((item, index) => {
