@@ -88,16 +88,19 @@ export default function Page() {
     fetch("/api/upload", requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log("upload result: ", result)
         setUploading(false)
-        toast.success("上传成功")
-        getImages()
+        if (result.message != undefined) {
+          toast.error("上传失败: " + result.message)
+        } else {
+          toast.success("上传成功")
+          getImages()
+        }
       })
       .catch(error => {
+        setUploading(false)
         toast.error("上传失败")
         console.log('error', error)
-        setUploading(false)
-      });
+      })
   };
 
   const parseRepoUrl = (url) => {
@@ -289,17 +292,16 @@ export default function Page() {
 
       <div className="flex-row md:flex mt-3 items-start">
         <div className="bg-white border shadow rounded md:w-1/3">
-          <div
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className="px-3 flex items-baseline border-b py-2">
+          <div className="px-3 flex items-baseline border-b py-2">
             <p className="text-gray-700 text-lg font-bold">上传</p>
             <p className="text-gray-500 text-sm ml-3">点击选择图片上传，或者拖动图片上传</p>
           </div>
 
           <div
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
             onClick={() => document.getElementById("fileInput").click()}
             className="flex-row py-10 cursor-pointer">
             <Image src="/assets/upload.png" alt="upload" width="64" height="64" className="mx-auto" />

@@ -1,9 +1,7 @@
-import { top_path } from "@/utils/const";
+import { top_path, vip_users } from "@/utils/const";
 import { getCurrentDate, getRawUrl, getCdnUrl } from "@/utils/helper";
 import { Octokit } from "@octokit/core";
 import { NextResponse } from "next/server";
-
-const vip_users = ['j20cc']
 
 async function getTrees(token, owner, repo, sha) {
   try {
