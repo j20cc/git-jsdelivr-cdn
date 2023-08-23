@@ -60,9 +60,9 @@ export async function GET(req) {
   }
 
   if (sha1) {
-    console.log("sha1: ", sha1);
+    // console.log("sha1: ", sha1);
     let children = await getTrees(token, owner, repo, sha1)
-    console.log("children: ", children);
+    // console.log("children: ", children);
     children = children.filter(item => item.type == "blob")
       .map(item => {
         const new_path = `${top_path}/${second_path}/${item.path}`

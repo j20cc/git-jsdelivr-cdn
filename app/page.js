@@ -166,11 +166,14 @@ export default function Page() {
         Accept: 'application/vnd.github+json',
         "Authorization": `Bearer ${token}`,
       };
+      const toastId = toast.loading('获取仓库分支列表...');
       const response = await fetch(URL, { headers });
       if (response.status != 200) {
+        toast.dismiss(toastId)
         toast.error("token 错误")
         return
       }
+      toast.dismiss(toastId)
       const data = await response.json();
       const list = data.map(item => item.name);
       if (list.length > 0) {
