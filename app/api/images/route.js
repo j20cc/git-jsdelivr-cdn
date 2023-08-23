@@ -19,7 +19,7 @@ async function getTrees(token, owner, repo, sha) {
 
     return res.data.tree
   } catch (error) {
-    return NextResponse.json({ message: "get images fail" }, { status: 400 })
+    return []
   }
 }
 

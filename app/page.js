@@ -12,7 +12,7 @@ export default function Page() {
   const [hasSetting, setHasSetting] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null);
   const [url, setUrl] = useState('')
-  const [branches, setBranches] = useState(['master', 'main'])
+  const [branches, setBranches] = useState(['main', 'master'])
   const [owner, setOwner] = useState('')
   const [repo, setRepo] = useState('')
   const [token, setToken] = useState('')
@@ -25,7 +25,7 @@ export default function Page() {
       const settings = localStorage.getItem("settings")
       console.log("get settings: ", settings);
       if (settings) {
-        const { owner, repo, token, branch, vip } = JSON.parse(settings)
+        const { owner, repo, token, branch } = JSON.parse(settings)
         if (owner && repo) {
           setUrl(`${owner}/${repo}`)
         }
@@ -34,7 +34,6 @@ export default function Page() {
         setToken(token)
         setBranch(branch)
         setBranches([branch])
-        setVip(vip)
         setHasSetting(true)
       }
     }
@@ -72,6 +71,15 @@ export default function Page() {
   }
 
   const handleFileUpload = async () => {
+    if (!selectedFile || !selectedFile.type.startsWith("image")) {
+      toast.error("请选择图片")
+      return
+    }
+    if (!vip && (selectedFile.size >= 2 * 1024)) {
+      toast.error("免费用户最大上传 2mb 图片")
+      return
+    }
+
     setUploading(true)
     let formdata = new FormData();
     formdata.append("token", token);
@@ -147,11 +155,11 @@ export default function Page() {
       setOwner(info.owner)
       setRepo(info.repo)
       setUrl(`${info.owner}/${info.repo}`)
-      handleGetBranches()
     }
   }
 
   const handleGetBranches = async () => {
+    console.log("handleGetBranches");
     if (token && owner && repo) {
       const URL = `https://api.github.com/repos/${owner}/${repo}/branches`;
       const headers = {
@@ -159,6 +167,10 @@ export default function Page() {
         "Authorization": `Bearer ${token}`,
       };
       const response = await fetch(URL, { headers });
+      if (response.status != 200) {
+        toast.error("token 错误")
+        return
+      }
       const data = await response.json();
       const list = data.map(item => item.name);
       if (list.length > 0) {
@@ -168,17 +180,26 @@ export default function Page() {
     }
   }
 
-  const handleSaveSetting = (v) => {
+  const handleSaveSetting = () => {
     const setting_info = {
-      token,
       owner,
       repo,
+      token,
       branch,
-      vip
     }
-    if (v == 1) {
+
+    for (const key in setting_info) {
+      if (!setting_info[key]) {
+        toast.error("请填写完整配置")
+        return
+      }
+    }
+
+    if (hasSetting) {
+      setHasSetting(false)
+    } else {
       setHasSetting(true)
-      getImages()
+      // getImages()
     }
     console.log("set settings: ", setting_info);
     localStorage.setItem("settings", JSON.stringify(setting_info));
@@ -218,7 +239,7 @@ export default function Page() {
     if (type == 'markdown') {
       text = `![${info.name}](${info.cdn_url})`
     } else if (type == 'html') {
-      text = `<img src="${info.cdn_url}" alt="${info.name}" width="100" height="100"></img>`
+      text = `<img src="${info.cdn_url}" alt="${info.path}"></img>`
     }
     var textarea = document.createElement('textarea');
     document.body.appendChild(textarea);
@@ -243,6 +264,7 @@ export default function Page() {
         <div className="flex items-center">
           <p className='text-gray-600 text-sm'>存储仓库:</p>
           <input
+            disabled={hasSetting}
             placeholder='输入 git 仓库链接'
             value={url} onChange={e => setUrl(e.target.value)} onBlur={handleParseGithub}
             type="text" className='border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
@@ -250,7 +272,13 @@ export default function Page() {
 
         <div className="flex items-center md:ml-2">
           <p className='text-gray-600 text-sm'>token:</p>
-          <input placeholder='输入具有该仓库读写权限的 token' value={token} onChange={e => setToken(e.target.value)} onBlur={handleGetBranches} type="text" className='w-80  border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
+          <input
+            disabled={hasSetting}
+            placeholder='输入具有该仓库读写权限的 token'
+            value={token}
+            onChange={e => setToken(e.target.value)}
+            onBlur={handleGetBranches}
+            type="text" className='w-80  border text-gray-600 rounded h-7 px-1 ml-2 focus:outline-none' />
         </div>
         <div className="flex items-center md:ml-2">
           <p className='text-gray-600 text-sm'>分支:</p>
@@ -264,8 +292,8 @@ export default function Page() {
 
           <button
             className={`${hasSetting ? 'bg-green-300' : 'bg-green-400'} text-white text-sm border rounded px-3 py-1 ml-2`}
-            onClick={() => { handleSaveSetting(1) }}
-          >{hasSetting ? "已保存" : "保 存"}</button>
+            onClick={handleSaveSetting}
+          >{hasSetting ? "修 改" : "保 存"}</button>
         </div>
       </div >)
   }

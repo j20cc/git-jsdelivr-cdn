@@ -11,9 +11,6 @@ const committer_email = "luke_44@163.com"
 export async function POST(req) {
   const form = await req.formData()
   const file = form.get("file")
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const bs64 = buffer.toString("base64");
-  const sha1Hash = createHash("sha1").update(buffer).digest("hex");
   const token = form.get("token")
   const branch = form.get("branch")
   const owner = form.get("owner")
@@ -24,11 +21,13 @@ export async function POST(req) {
   if (!file.type.startsWith("image")) {
     return NextResponse.json({ message: "只能上传图片" }, { status: 400 })
   }
-
   const vip = vip_users.includes(owner)
-  if (!vip && file.size >= 2 * 1024) {
+  if (!vip && (file.size >= 2 * 1024)) {
     return NextResponse.json({ message: "免费用户最大上传 2mb 图片" }, { status: 400 })
   }
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const bs64 = buffer.toString("base64");
+  const sha1Hash = createHash("sha1").update(buffer).digest("hex");
   try {
     // Octokit.js
     // https://github.com/octokit/core.js#readme
