@@ -75,8 +75,13 @@ export default function Page() {
       toast.error("请选择图片")
       return
     }
-    if (!vip && (selectedFile.size >= 2 * 1024)) {
+    console.log("client size: ", selectedFile.size);
+    if (!vip && (selectedFile.size > 2 * 1024 * 1024)) {
       toast.error("免费用户最大上传 2mb 图片")
+      return
+    }
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      toast.error("最大上传 10mb 图片")
       return
     }
 

@@ -22,8 +22,12 @@ export async function POST(req) {
     return NextResponse.json({ message: "只能上传图片" }, { status: 400 })
   }
   const vip = vip_users.includes(owner)
-  if (!vip && (file.size >= 2 * 1024)) {
+  console.log("server size: ", file.size);
+  if (!vip && (file.size > 2 * 1024 * 1024)) {
     return NextResponse.json({ message: "免费用户最大上传 2mb 图片" }, { status: 400 })
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return NextResponse.json({ message: "最大上传 10mb 图片" }, { status: 400 })
   }
   const buffer = Buffer.from(await file.arrayBuffer());
   const bs64 = buffer.toString("base64");

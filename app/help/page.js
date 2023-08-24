@@ -15,7 +15,7 @@ export default function Page() {
       <article className="mt-10 prose lg:prose-xl">
         <h3>付费解锁高级功能</h3>
         <p>1. 免费用户只能上传图片，最大上传 2mb 图片，仅能获取当天上传记录</p>
-        <p>2. 付费用户支持目录树和删除功能，图片尺寸无限制，价格：30 元/年，50 元/终身</p>
+        <p>2. 付费用户支持目录树和删除功能，最大上传 10mb 图片，价格：30 元/年</p>
         <p>3. 向我微信或支付宝转账时，请备注: <b>你的 github 用户名和邮箱</b>，开通后您会收到我的确认邮件</p>
         <img src="https://cdn.jsdelivr.net/gh/j20cc/scripts@master/images/20230821/15102_WechatIMG7502.jpg" alt="image"></img>
         <i>*左边为微信，右边为支付宝</i>
