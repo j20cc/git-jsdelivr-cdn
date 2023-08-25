@@ -387,7 +387,7 @@ export default function Page() {
 
                   {item.children.map((child, idx) => {
                     return (<div key={idx} className="pl-4 flex-row md:flex items-center px-2 mt-2">
-                      <Image src={child.cdn_url} alt="image" width="32" height="32" className="hidden md:block" />
+                      <Image src={`https://wsrv.nl/?w=40&h=40&url=${child.raw_url}`} alt="image" width="32" height="32" className="hidden md:block" />
                       <p className="text-gray-500 text-sm ml-0 md:ml-3">{`${item.path}/${child.path}`}</p>
                       <div className="ml-auto flex items-center">
                         {

@@ -7,6 +7,11 @@ const nextConfig = {
         hostname: 'cdn.jsdelivr.net',
         port: '',
       },
+      {
+        protocol: 'https',
+        hostname: 'wsrv.nl',
+        port: '',
+      },
     ],
   },
 }
