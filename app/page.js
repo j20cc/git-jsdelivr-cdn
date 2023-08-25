@@ -224,7 +224,7 @@ export default function Page() {
       'Content-Type': 'application/json',
     });
     const body = JSON.stringify({
-      message: "delete by https://ipic.j20.cc",
+      message: "delete by https://pic.j20.cc",
       committer: {
         name: "luke_44",
         email: "luke_44@163.com"

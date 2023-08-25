@@ -4,7 +4,7 @@ const { createHash } = require("crypto");
 import { getCurrentDate, generateRandomNumber, getRawUrl, getCdnUrl } from "@/utils/helper";
 import { isVipUser, top_path } from "@/utils/const";
 
-const home_page = "https://ipic.j20.cc"
+const home_page = "https://pic.j20.cc"
 const committer_name = "luke_44"
 const committer_email = "luke_44@163.com"
 
