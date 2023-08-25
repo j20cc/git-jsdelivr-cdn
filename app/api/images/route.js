@@ -1,4 +1,4 @@
-import { top_path, vip_users } from "@/utils/const";
+import { top_path, isVipUser } from "@/utils/const";
 import { getCurrentDate, getRawUrl, getCdnUrl } from "@/utils/helper";
 import { Octokit } from "@octokit/core";
 import { NextResponse } from "next/server";
@@ -33,7 +33,7 @@ export async function GET(req) {
 
   let list = []
   let second_path = getCurrentDate()
-  const vip = vip_users.includes(owner)
+  const vip = isVipUser(owner)
   if (vip && path) {
     second_path = path
   }

@@ -2,7 +2,7 @@ import { Octokit } from "@octokit/core";
 import { NextResponse } from "next/server";
 const { createHash } = require("crypto");
 import { getCurrentDate, generateRandomNumber, getRawUrl, getCdnUrl } from "@/utils/helper";
-import { top_path, vip_users } from "@/utils/const";
+import { isVipUser, top_path } from "@/utils/const";
 
 const home_page = "https://ipic.j20.cc"
 const committer_name = "luke_44"
@@ -21,7 +21,7 @@ export async function POST(req) {
   if (!file.type.startsWith("image")) {
     return NextResponse.json({ message: "只能上传图片" }, { status: 400 })
   }
-  const vip = vip_users.includes(owner)
+  const vip = isVipUser(owner)
   console.log("server size: ", file.size);
   if (!vip && (file.size > 2 * 1024 * 1024)) {
     return NextResponse.json({ message: "免费用户最大上传 2mb 图片" }, { status: 400 })

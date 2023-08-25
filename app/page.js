@@ -43,6 +43,7 @@ export default function Page() {
 
   useEffect(() => {
     if (hasSetting) {
+      handleGetBranches()
       getImages()
     }
   }, [hasSetting])
@@ -245,7 +246,7 @@ export default function Page() {
   const handleCopy = (type, info) => {
     let text = info.cdn_url
     if (type == 'markdown') {
-      text = `![${info.name}](${info.cdn_url})`
+      text = `![${info.path}](${info.cdn_url})`
     } else if (type == 'html') {
       text = `<img src="${info.cdn_url}" alt="${info.path}"></img>`
     }
@@ -306,6 +307,21 @@ export default function Page() {
       </div >)
   }
 
+  const renderVip = () => {
+    if (!vip) {
+      return (
+        <>
+          <p className="text-gray-500 text-sm ml-3">免费用户仅显示今日上传记录，付费用户支持目录树和删除功能</p>
+          <Link href="/help#update" className="text-gray-600 text-sm ml-3 underline cursor-pointer">*去升级</Link>
+        </>
+      )
+    }
+
+    return (
+      <p className="text-gray-500 text-sm ml-3">年费用户，到期时间: {vip}</p>
+    )
+  }
+
   const renderCopyButton = (title, item) => {
     return (
       <div className="bg-green-400 text-white text-sm border rounded px-3 py-1 cursor-pointer flex items-center" onClick={() => handleCopy(title, item)}>
@@ -357,8 +373,8 @@ export default function Page() {
         <div className="bg-white border shadow rounded md:w-2/3 md:ml-5 mt-3 md:mt-0">
           <div className="px-3 flex items-baseline border-b py-2">
             <p className="text-gray-700 text-lg font-bold">列表</p>
-            <p className="text-gray-500 text-sm ml-3">免费用户仅显示今日上传记录，付费用户支持目录树和删除功能</p>
-            {!vip && <Link href="/help" className="text-gray-600 text-sm ml-3 underline cursor-pointer">*付费</Link>}
+
+            {renderVip()}
           </div>
           <div className='py-2'>
             {list.map((item, index) => {
