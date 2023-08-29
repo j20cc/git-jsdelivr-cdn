@@ -5,6 +5,7 @@ export const app_description = "把你的 github 仓库变成免费图床"
 const vip_users = {
   "j20cc": "2024-08-24",
   "AboutSange": "2024-08-25",
+  "cyub": "2024-08-28",
 }
 
 export function isVipUser(name) {
