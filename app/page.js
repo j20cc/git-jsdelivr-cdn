@@ -336,7 +336,7 @@ export default function Page() {
       <Toaster />
 
       <div className="flex items-baseline mb-3">
-        <h3 className='text-2xl non-italic text-gray-700 font-mono'>{app_name}</h3>
+        <h3 className='text-2xl text-gray-700'>{app_name}</h3>
         <p className='ml-2 italic text-gray-600'>{app_description}</p>
       </div>
 
