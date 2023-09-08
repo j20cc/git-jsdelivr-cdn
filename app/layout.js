@@ -13,6 +13,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>{children}</body>
       <Script
+        id="my-script"
         dangerouslySetInnerHTML={{
           __html: `var _hmt = _hmt || [];
 (function() {
