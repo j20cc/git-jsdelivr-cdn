@@ -13,7 +13,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>{children}</body>
       <Script
-        id="my-script"
+        id="show-banner"
         dangerouslySetInnerHTML={{
           __html: `var _hmt = _hmt || [];
 (function() {
@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
   hm.src = "https://hm.baidu.com/hm.js?ce0f4be946c87b5effa495bd3a79ffc6";
   var s = document.getElementsByTagName("script")[0]; 
   s.parentNode.insertBefore(hm, s);
-})();
+})();`,
         }}
       />
     </html>
