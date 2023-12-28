@@ -248,7 +248,7 @@ export default function Page() {
     if (type == 'markdown') {
       text = `![${info.path}](${info.cdn_url})`
     } else if (type == 'html') {
-      text = `<img src="${info.cdn_url}" alt="${info.path}"></img>`
+      text = `<img src="${info.cdn_url}" alt="${info.path}" />`
     }
     var textarea = document.createElement('textarea');
     document.body.appendChild(textarea);
