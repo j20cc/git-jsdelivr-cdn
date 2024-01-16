@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-@import 'lxgw-wenkai-screen-webfont/style.css';
+/* @import 'lxgw-wenkai-screen-webfont/style.css'; */
 
 html {
     background-color: rgb(167 243 208);
-    font-family: "LXGW WenKai Screen", sans-serif;
+    /* font-family: "LXGW WenKai Screen", sans-serif; */
 }
